@@ -39,15 +39,19 @@ export const ChatProvider = ({children})=>{
         }
     }
 
-    //Function to subscribe to message fro selected users to get message i n real time
-    const subscribeToMessage = async(userId)=>{
+    //Function to subscribe to message from selected users to get message in real time
+    const subscribeToMessage = async()=>{
         if(!socket) return;
         socket.on("newMessage",(newMessage)=>{
-            if(selectedUser && newMessage.senderId === selectedUser._id){
+            console.log("Received newMessage:", newMessage);
+            
+            // If we have a selected user and this message is from/to them, show it immediately
+            if(selectedUser && (newMessage.senderId === selectedUser._id || newMessage.receiverId === selectedUser._id)){
                 newMessage.seen = true;
                 setMessages((prevMessages)=>[...prevMessages,newMessage])
                 axios.put(`/api/messages/mark/${newMessage._id}`);
             }else{
+                // Update unseen count for other users
                 setUnseenMessage((prevUnseenMessage)=>({
                     ...prevUnseenMessage,[newMessage.senderId]:prevUnseenMessage[newMessage.senderId] ? prevUnseenMessage[newMessage.senderId]+1:1 
                 }))
@@ -61,9 +65,11 @@ export const ChatProvider = ({children})=>{
         if(socket) socket.off("newMessage");
     }
     useEffect(()=>{
-        subscribeToMessage();
+        if(socket) {
+            subscribeToMessage();
+        }
         return ()=> unsucbscribeFromMessages();
-    },[socket,selectedUser])
+    },[socket])
 
 
 
