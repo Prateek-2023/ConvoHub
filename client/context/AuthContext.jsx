@@ -77,42 +77,51 @@ export const AuthProvider=({ children })=>{
         axios.defaults.headers.common["token"] = null;
         toast.success("Logged out Successfully")
         socket?.disconnect();
+        setSocket(null);
     }
 
-    const connectSocket = (userData) => {
-        if (!userData || socket?.connected) return;
-      
-        const newSocket = io(backendurl, {
-          query: { userId: userData._id },
-          transports: ['websocket', 'polling'],
-          withCredentials: true,
-          timeout: 20000,
-          forceNew: true,
-          reconnection: true,
-          reconnectionAttempts: 5,
-          reconnectionDelay: 1000,
-          reconnectionDelayMax: 5000,
+    //Connect socket function to handle socket connection and online users update
+    const connectSocket = (userData)=>{
+        if(!userData) return;
+        
+        // Disconnect existing socket if any
+        if(socket?.connected) {
+            socket.disconnect();
+            setSocket(null);
+        }
+
+        const newSocket = io(backendurl,{
+            query: {
+                userId: userData._id,
+            },
+            transports: ['websocket', 'polling'],
+            timeout: 20000,
+            forceNew: true,
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
         });
-      
+        
         newSocket.on('connect', () => {
-          // console.log('Socket connected:', newSocket.id);
+            console.log('Socket connected:', newSocket.id);
         });
-      
+        
         newSocket.on('disconnect', () => {
-          // console.log('Socket disconnected');
+            console.log('Socket disconnected');
         });
-      
+        
         newSocket.on('reconnect', () => {
-          // console.log('Socket reconnected');
+            console.log('Socket reconnected');
         });
-      
-        newSocket.on('getOnlineUsers', (userIds) => {
-          setOnlineUser(userIds || []);
+
+        newSocket.on("getOnlineUsers", (userIds)=>{
+            console.log('Online users received:', userIds);
+            setOnlineUser(userIds || []);
         });
-      
+        
         newSocket.connect();
         setSocket(newSocket);
-      };
+    }
 
     useEffect(()=>{
         if(token){
