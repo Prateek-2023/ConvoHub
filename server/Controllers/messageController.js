@@ -86,10 +86,16 @@ export const sendMessage = async(req,res)=>{
             image: imageUrl
         })  
 
-        //Emit the new message to receivers socket
+        //Emit the new message to receiver's socket
         const receiverSocketId = userSocketMap[receiverId];
         if(receiverSocketId){
-            io.to(receiverSocketId).emit("newMessage", newMessage) // receiver will se the msg
+            io.to(receiverSocketId).emit("newMessage", newMessage) // receiver will see the msg
+        }
+
+        //Emit the new message to sender's socket (so sender sees it immediately)
+        const senderSocketId = userSocketMap[senderId];
+        if(senderSocketId){
+            io.to(senderSocketId).emit("newMessage", newMessage) // sender will see the msg
         }
 
         res.json({success:true, newMessage})

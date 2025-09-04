@@ -77,6 +77,8 @@ export const ChatProvider = ({children})=>{
             const { data } = await axios.post(`/api/messages/send/${selectedUser._id}`,messageData)
             if(data.success){
                 setMessages((prevMessages)=>[...prevMessages,data.newMessage])
+                // Refresh from server to ensure complete, ordered thread (prevents stale UI until user switches)
+                await getMessages(selectedUser._id)
             }else{
                 toast.error(data.message)
             }
