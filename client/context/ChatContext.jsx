@@ -69,6 +69,10 @@ export const ChatProvider = ({children})=>{
 
     //Function to send message to selected user
     const sendMessage = async(messageData)=>{
+        if(!selectedUser) {
+            toast.error("Please select a user to send message");
+            return;
+        }
         try {
             const { data } = await axios.post(`/api/messages/send/${selectedUser._id}`,messageData)
             if(data.success){
@@ -77,7 +81,8 @@ export const ChatProvider = ({children})=>{
                 toast.error(data.message)
             }
         }catch(error){
-            toast.error(error.message)
+            console.error("Send message error:", error);
+            toast.error(error.response?.data?.message || error.message || "Failed to send message")
         }
     }
 

@@ -94,24 +94,32 @@ export const AuthProvider=({ children })=>{
             query: {
                 userId: userData._id,
             },
-            transports: ['websocket', 'polling'],
-            timeout: 20000,
+            transports: ['polling', 'websocket'], // Start with polling for mobile compatibility
+            timeout: 30000,
             forceNew: true,
             reconnection: true,
-            reconnectionAttempts: 5,
+            reconnectionAttempts: 10,
             reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            maxReconnectionAttempts: 10,
+            autoConnect: true,
         });
         
         newSocket.on('connect', () => {
             console.log('Socket connected:', newSocket.id);
+            console.log('Transport:', newSocket.io.engine.transport.name);
         });
         
-        newSocket.on('disconnect', () => {
-            console.log('Socket disconnected');
+        newSocket.on('disconnect', (reason) => {
+            console.log('Socket disconnected:', reason);
         });
         
-        newSocket.on('reconnect', () => {
-            console.log('Socket reconnected');
+        newSocket.on('reconnect', (attemptNumber) => {
+            console.log('Socket reconnected after', attemptNumber, 'attempts');
+        });
+
+        newSocket.on('connect_error', (error) => {
+            console.error('Socket connection error:', error);
         });
 
         newSocket.on("getOnlineUsers", (userIds)=>{
