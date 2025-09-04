@@ -8,6 +8,7 @@
                             mongoose - connect the prject with mongodb database
                             socket.io - enable real time chat messaging*/}
 
+// server/server.js
 import express from "express";
 import "dotenv/config";
 import cors from "cors";
@@ -17,13 +18,19 @@ import userRouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/messageRoutes.js";
 import { Server } from "socket.io";
 
-//Create Express and http server
 const app = express();
 const server = http.createServer(app)
 
-//initialize socket.io server
+//initialize socket.io server with proper CORS
 export const io = new Server(server,{
-    cors:{origin:"*"}
+    cors:{
+        origin: process.env.NODE_ENV === 'production' 
+            ? ["https://convo-hub-ten.vercel.app/"] 
+            : "*",
+        methods: ["GET", "POST"],
+        credentials: true
+    },
+    transports: ['websocket', 'polling']
 })
 
 //store online users

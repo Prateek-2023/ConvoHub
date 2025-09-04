@@ -79,21 +79,40 @@ export const AuthProvider=({ children })=>{
         socket?.disconnect();
     }
 
-    //Connect socket function to handle socket connection and online users update
-    const connectSocket = (userData)=>{
-        if(!userData || socket?.connected) return;
-        const newSocket = io(backendurl,{
-            query: {
-                userId: userData._id,
-            }
+    const connectSocket = (userData) => {
+        if (!userData || socket?.connected) return;
+      
+        const newSocket = io(backendurl, {
+          query: { userId: userData._id },
+          transports: ['websocket', 'polling'],
+          withCredentials: true,
+          timeout: 20000,
+          forceNew: true,
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
         });
+      
+        newSocket.on('connect', () => {
+          // console.log('Socket connected:', newSocket.id);
+        });
+      
+        newSocket.on('disconnect', () => {
+          // console.log('Socket disconnected');
+        });
+      
+        newSocket.on('reconnect', () => {
+          // console.log('Socket reconnected');
+        });
+      
+        newSocket.on('getOnlineUsers', (userIds) => {
+          setOnlineUser(userIds || []);
+        });
+      
         newSocket.connect();
         setSocket(newSocket);
-
-        newSocket.on("getOnlineUsers", (userIds)=>{
-            setOnlineUser(userIds);
-        })
-    } 
+      };
 
     useEffect(()=>{
         if(token){
